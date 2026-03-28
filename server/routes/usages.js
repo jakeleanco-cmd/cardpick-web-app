@@ -192,6 +192,38 @@ router.post('/', async (req, res) => {
 });
 
 /**
+ * PUT /api/usages/:id
+ * 사용 기록 수정 (결제 금액, 혜택 금액, 메모 등)
+ */
+router.put('/:id', async (req, res) => {
+  try {
+    const { amount, benefitAmount, memo, date } = req.body;
+
+    const usage = await BenefitUsage.findOne({ _id: req.params.id, userId: req.user.id });
+    if (!usage) {
+      return res.status(404).json({ message: '사용 기록을 찾을 수 없습니다.' });
+    }
+
+    // 허용된 필드만 업데이트
+    if (amount !== undefined) usage.amount = amount;
+    if (benefitAmount !== undefined) usage.benefitAmount = benefitAmount;
+    if (memo !== undefined) usage.memo = memo;
+    if (date !== undefined) usage.date = date;
+
+    await usage.save();
+
+    const populated = await usage.populate([
+      { path: 'benefitCategoryId', select: 'categoryName discountType' },
+      { path: 'cardId', select: 'name company color' },
+    ]);
+
+    res.json(populated);
+  } catch (error) {
+    res.status(500).json({ message: '사용 기록 수정 실패', error: error.message });
+  }
+});
+
+/**
  * DELETE /api/usages/:id
  * 사용 기록 삭제
  */

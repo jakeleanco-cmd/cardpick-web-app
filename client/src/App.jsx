@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from
 import { ConfigProvider, Layout, App as AntApp } from 'antd';
 import {
   HomeOutlined, CreditCardOutlined,
-  PlusCircleOutlined, UnorderedListOutlined,
+  UnorderedListOutlined,
   LogoutOutlined,
 } from '@ant-design/icons';
 import themeConfig from './theme/themeConfig';
@@ -19,7 +19,7 @@ import './App.css';
 
 /**
  * 하단 탭 네비게이션 (모바일 퍼스트)
- * - 홈, 카드, 입력, 기록 4개 탭
+ * - 홈, 카드, 내역 3개 탭
  */
 const BottomNav = () => {
   const navigate = useNavigate();
@@ -29,7 +29,7 @@ const BottomNav = () => {
   const tabs = [
     { key: '/', icon: <HomeOutlined />, label: '홈' },
     { key: '/cards', icon: <CreditCardOutlined />, label: '카드' },
-    { key: '/usage', icon: <PlusCircleOutlined />, label: '입력' },
+    { key: '/usage', icon: <UnorderedListOutlined />, label: '내역' },
   ];
 
   // 현재 활성 탭 결정

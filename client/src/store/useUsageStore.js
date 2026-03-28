@@ -38,6 +38,20 @@ const useUsageStore = create((set, get) => ({
     }
   },
 
+  // 사용 기록 수정
+  updateUsage: async (id, updateData) => {
+    try {
+      const res = await api.put(`/usages/${id}`, updateData);
+      set({
+        usages: get().usages.map((u) => (u._id === id ? res.data : u)),
+      });
+      return true;
+    } catch (error) {
+      set({ error: error.response?.data?.message || '사용 기록 수정 실패' });
+      return false;
+    }
+  },
+
   // 사용 기록 삭제
   deleteUsage: async (id) => {
     try {

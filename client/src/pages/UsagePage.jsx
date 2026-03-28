@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Typography, Card, List, Empty, Spin, Button, Popconfirm, Tag, message, DatePicker } from 'antd';
-import { DeleteOutlined, CalendarOutlined } from '@ant-design/icons';
+import { DeleteOutlined, EditOutlined, CalendarOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import useUsageStore from '../store/useUsageStore';
 import useDashboardStore from '../store/useDashboardStore';
 import QuickUsageForm from '../components/QuickUsageForm';
+import EditUsageModal from '../components/EditUsageModal';
 
 const { Title, Text } = Typography;
 
@@ -19,14 +20,22 @@ const UsagePage = () => {
   const { usages, loading, fetchUsages, deleteUsage } = useUsageStore();
   const { fetchDashboard } = useDashboardStore();
 
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [selectedUsage, setSelectedUsage] = useState(null);
+
   useEffect(() => {
     fetchUsages(selectedMonth.year(), selectedMonth.month() + 1);
   }, [selectedMonth]);
 
-  // 사용 기록 등록 성공 시
+  // 사용 기록 등록/수정 성공 시
   const handleUsageSuccess = () => {
     fetchUsages(selectedMonth.year(), selectedMonth.month() + 1);
     fetchDashboard(); // 대시보드도 갱신
+  };
+
+  const openEditModal = (usage) => {
+    setSelectedUsage(usage);
+    setEditModalOpen(true);
   };
 
   // 사용 기록 삭제
@@ -127,24 +136,41 @@ const UsagePage = () => {
                     </Text>
                   </div>
                 </div>
-                <Popconfirm
-                  title="삭제하시겠습니까?"
-                  onConfirm={() => handleDelete(usage._id)}
-                  okText="삭제"
-                  cancelText="취소"
-                >
+                <div style={{ display: 'flex', gap: 4 }}>
                   <Button
                     type="text"
                     size="small"
-                    danger
-                    icon={<DeleteOutlined />}
+                    icon={<EditOutlined />}
+                    style={{ color: '#9CA3AF' }}
+                    onClick={() => openEditModal(usage)}
                   />
-                </Popconfirm>
+                  <Popconfirm
+                    title="삭제하시겠습니까?"
+                    onConfirm={() => handleDelete(usage._id)}
+                    okText="삭제"
+                    cancelText="취소"
+                  >
+                    <Button
+                      type="text"
+                      size="small"
+                      danger
+                      icon={<DeleteOutlined />}
+                    />
+                  </Popconfirm>
+                </div>
               </div>
             </Card>
           )}
         />
       )}
+
+      {/* 내역 수정 모달 */}
+      <EditUsageModal
+        open={editModalOpen}
+        onClose={() => setEditModalOpen(false)}
+        usage={selectedUsage}
+        onSuccess={handleUsageSuccess}
+      />
     </div>
   );
 };
