@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
-import { Drawer, Form, InputNumber, Input, Button, message, Typography } from 'antd';
+import { Drawer, Form, InputNumber, Input, Button, message, Typography, DatePicker } from 'antd';
+import dayjs from 'dayjs';
 import { SaveOutlined } from '@ant-design/icons';
 import useUsageStore from '../store/useUsageStore';
 
@@ -19,6 +20,7 @@ const EditUsageModal = ({ open, onClose, usage, onSuccess }) => {
         amount: usage.amount || 0,
         benefitAmount: usage.benefitAmount,
         memo: usage.memo || '',
+        date: usage.date ? dayjs(usage.date) : null,
       });
     }
   }, [open, usage, form]);
@@ -30,6 +32,7 @@ const EditUsageModal = ({ open, onClose, usage, onSuccess }) => {
       amount: values.amount || 0,
       benefitAmount: values.benefitAmount,
       memo: values.memo || '',
+      date: values.date ? values.date.toDate() : undefined,
     });
 
     if (success) {
@@ -62,6 +65,19 @@ const EditUsageModal = ({ open, onClose, usage, onSuccess }) => {
       }}
     >
       <Form form={form} onFinish={handleSubmit} layout="vertical" size="large">
+        <Form.Item
+          label="사용 일자 (선택)"
+          name="date"
+          tooltip="비워두시면 현재 시각으로 자동 등록됩니다."
+        >
+          <DatePicker 
+            showTime 
+            format="YYYY-MM-DD HH:mm" 
+            style={{ width: '100%' }}
+            placeholder="사용하신 일자와 시간을 선택하세요"
+          />
+        </Form.Item>
+
         <Form.Item
           label="결제 금액 (선택)"
           name="amount"

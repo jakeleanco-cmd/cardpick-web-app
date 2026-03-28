@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Drawer, Form, InputNumber, Input, Button, message, Typography, Divider, List, Popconfirm, Spin, Empty } from 'antd';
-import { ThunderboltOutlined, DeleteOutlined } from '@ant-design/icons';
+import { Drawer, Form, InputNumber, Input, Button, message, Typography, Divider, List, Popconfirm, Spin, Empty, DatePicker } from 'antd';
+import { ThunderboltOutlined, DeleteOutlined, EditOutlined } from '@ant-design/icons';
+import EditUsageModal from './EditUsageModal';
 import dayjs from 'dayjs';
 import useUsageStore from '../store/useUsageStore';
 import api from '../api/axios';
@@ -18,6 +19,10 @@ const DirectUsageModal = ({ open, onClose, card, category, onSuccess }) => {
   // 현재 카드/카테고리의 이번 달 사용 내역 상태
   const [recentUsages, setRecentUsages] = useState([]);
   const [loadingUsages, setLoadingUsages] = useState(false);
+
+  // 수정 모달 상태
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [selectedUsageForEdit, setSelectedUsageForEdit] = useState(null);
 
   // 이번 달 내역 불러오기
   const loadCategoryUsages = async () => {
@@ -61,6 +66,7 @@ const DirectUsageModal = ({ open, onClose, card, category, onSuccess }) => {
       amount: values.amount || 0,
       benefitAmount: values.benefitAmount,
       memo: values.memo || '',
+      date: values.date ? values.date.toDate() : undefined,
     });
 
     if (success) {
@@ -87,7 +93,13 @@ const DirectUsageModal = ({ open, onClose, card, category, onSuccess }) => {
 
   if (!card || !category) return null;
 
+  const handleEditClick = (usage) => {
+    setSelectedUsageForEdit(usage);
+    setEditModalOpen(true);
+  };
+
   return (
+    <>
     <Drawer
       title={
         <div>
@@ -107,6 +119,19 @@ const DirectUsageModal = ({ open, onClose, card, category, onSuccess }) => {
       }}
     >
       <Form form={form} onFinish={handleSubmit} layout="vertical" size="large">
+        <Form.Item
+          label="사용 일자 (선택)"
+          name="date"
+          tooltip="비워두시면 현재 시각으로 자동 등록됩니다."
+        >
+          <DatePicker 
+            showTime 
+            format="YYYY-MM-DD HH:mm"
+            style={{ width: '100%' }}
+            placeholder="사용 일자 및 시간을 선택하세요"
+          />
+        </Form.Item>
+
         <Form.Item label="결제 금액 (선택)" name="amount">
           <InputNumber
             placeholder="결제 금액 입력"
@@ -199,25 +224,48 @@ const DirectUsageModal = ({ open, onClose, card, category, onSuccess }) => {
                 </Text>
               </div>
               
-              <Popconfirm
-                title="삭제하시겠습니까?"
-                onConfirm={() => handleDelete(usage._id)}
-                okText="삭제"
-                cancelText="취소"
-                placement="topRight"
-              >
+              <div style={{ display: 'flex', gap: 4 }}>
                 <Button
                   type="text"
                   size="small"
-                  danger
-                  icon={<DeleteOutlined />}
+                  icon={<EditOutlined />}
+                  style={{ color: '#9CA3AF' }}
+                  onClick={() => handleEditClick(usage)}
                 />
-              </Popconfirm>
+                <Popconfirm
+                  title="삭제하시겠습니까?"
+                  onConfirm={() => handleDelete(usage._id)}
+                  okText="삭제"
+                  cancelText="취소"
+                  placement="topRight"
+                >
+                  <Button
+                    type="text"
+                    size="small"
+                    danger
+                    icon={<DeleteOutlined />}
+                  />
+                </Popconfirm>
+              </div>
             </div>
           )}
         />
       )}
     </Drawer>
+
+      {/* 혜택 내역 수정용 모달 */}
+      <EditUsageModal
+        open={editModalOpen}
+        onClose={() => setEditModalOpen(false)}
+        usage={selectedUsageForEdit}
+        onSuccess={() => {
+          // 수정 성공 시 대시보드 쪽 프로그레스바 수치 재계산을 위해 호출
+          onSuccess && onSuccess();
+          // 현재 모달 내의 리스트도 최신화
+          loadCategoryUsages();
+        }}
+      />
+    </>
   );
 };
 
