@@ -66,9 +66,6 @@ router.get('/dashboard', async (req, res) => {
           ? Math.min(100, (used / benefit.monthlyLimit) * 100)
           : 0;
 
-        totalLimit += benefit.monthlyLimit;
-        totalUsed += Math.min(used, benefit.monthlyLimit);
-
         return {
           _id: benefit._id,
           categoryName: benefit.categoryName,
