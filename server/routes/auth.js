@@ -108,4 +108,42 @@ router.get('/me', authMiddleware, async (req, res) => {
   }
 });
 
+/**
+ * PUT /api/auth/profile
+ * 회원 정보 수정 (이름, 비밀번호)
+ * - 현재 로그인된 사용자(authMiddleware)만 가능
+ */
+router.put('/profile', authMiddleware, async (req, res) => {
+  try {
+    const { name, password } = req.body;
+    const user = await User.findById(req.user.id);
+
+    if (!user) {
+      return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
+    }
+
+    // 이름 업데이트
+    if (name) user.name = name;
+
+    // 비밀번호 업데이트 (제공된 경우에만)
+    if (password) {
+      const hashedPassword = await bcrypt.hash(password, 10);
+      user.password = hashedPassword;
+    }
+
+    await user.save();
+
+    res.json({
+      message: '회원 정보가 성공적으로 수정되었습니다.',
+      user: {
+        id: user._id,
+        email: user.email,
+        name: user.name,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ message: '회원 정보 수정 중 오류가 발생했습니다.', error: error.message });
+  }
+});
+
 module.exports = router;

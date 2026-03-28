@@ -4,7 +4,7 @@ import { ConfigProvider, Layout, App as AntApp } from 'antd';
 import {
   HomeOutlined, CreditCardOutlined,
   UnorderedListOutlined,
-  LogoutOutlined,
+  UserOutlined,
 } from '@ant-design/icons';
 import themeConfig from './theme/themeConfig';
 import useAuthStore from './store/useAuthStore';
@@ -13,8 +13,9 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
 import CardsPage from './pages/CardsPage';
-import CardDetailPage from './pages/CardDetailPage';
+ import CardDetailPage from './pages/CardDetailPage';
 import UsagePage from './pages/UsagePage';
+import ProfilePage from './pages/ProfilePage';
 import './App.css';
 
 /**
@@ -30,6 +31,7 @@ const BottomNav = () => {
     { key: '/', icon: <HomeOutlined />, label: '홈' },
     { key: '/cards', icon: <CreditCardOutlined />, label: '카드' },
     { key: '/usage', icon: <UnorderedListOutlined />, label: '내역' },
+    { key: '/profile', icon: <UserOutlined />, label: '내 정보' },
   ];
 
   // 현재 활성 탭 결정
@@ -37,6 +39,7 @@ const BottomNav = () => {
     if (location.pathname === '/') return '/';
     if (location.pathname.startsWith('/cards')) return '/cards';
     if (location.pathname === '/usage') return '/usage';
+    if (location.pathname === '/profile') return '/profile';
     return '/';
   };
 
@@ -52,13 +55,6 @@ const BottomNav = () => {
           <span className="bottom-nav-label">{tab.label}</span>
         </div>
       ))}
-      <div
-        className="bottom-nav-item"
-        onClick={() => { logout(); navigate('/login'); }}
-      >
-        <span className="bottom-nav-icon"><LogoutOutlined /></span>
-        <span className="bottom-nav-label">로그아웃</span>
-      </div>
     </div>
   );
 };
@@ -98,6 +94,9 @@ const AppLayout = () => {
         } />
         <Route path="/usage" element={
           <ProtectedRoute><UsagePage /></ProtectedRoute>
+        } />
+        <Route path="/profile" element={
+          <ProtectedRoute><ProfilePage /></ProtectedRoute>
         } />
 
         {/* 404 — 홈으로 리다이렉트 */}

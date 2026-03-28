@@ -61,6 +61,25 @@ const useAuthStore = create((set) => ({
     }
   },
 
+  // 회원 정보 수정
+  updateProfile: async (name, password) => {
+    set({ loading: true, error: null });
+    try {
+      const res = await api.put('/auth/profile', { name, password });
+      set({
+        user: res.data.user,
+        loading: false,
+      });
+      return true;
+    } catch (error) {
+      set({
+        error: error.response?.data?.message || '회원 정보 수정에 실패했습니다.',
+        loading: false,
+      });
+      return false;
+    }
+  },
+
   // 로그아웃
   logout: () => {
     localStorage.removeItem('cardpick_token');
