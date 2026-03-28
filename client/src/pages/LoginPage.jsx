@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Form, Input, Button, Typography, message, Space } from 'antd';
+import { Form, Input, Button, Typography, message, Space, Divider } from 'antd';
 import { MailOutlined, LockOutlined, LoginOutlined } from '@ant-design/icons';
 import { useNavigate, Link } from 'react-router-dom';
 import useAuthStore from '../store/useAuthStore';
@@ -87,13 +87,26 @@ const LoginPage = () => {
           </Form.Item>
         </Form>
 
+        <Divider style={{ borderColor: '#3B3555' }}>
+          <Text style={{ color: '#9CA3AF', fontSize: 13 }}>처음이신가요?</Text>
+        </Divider>
+
         <div style={{ textAlign: 'center' }}>
-          <Text style={{ color: '#9CA3AF' }}>
-            계정이 없으신가요?{' '}
-            <Link to="/register" style={{ color: '#7C3AED', fontWeight: 600 }}>
-              회원가입
-            </Link>
-          </Text>
+          <Button 
+            type="default" 
+            block 
+            onClick={() => navigate('/register')}
+            style={{ 
+              height: 48, 
+              borderRadius: 12, 
+              background: 'transparent',
+              borderColor: '#7C3AED',
+              color: '#7C3AED',
+              fontWeight: 600
+            }}
+          >
+            신규 회원가입
+          </Button>
         </div>
       </div>
     </div>

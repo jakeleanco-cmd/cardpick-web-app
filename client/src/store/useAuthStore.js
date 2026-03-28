@@ -1,5 +1,9 @@
 import { create } from 'zustand';
 import api from '../api/axios';
+import useCardStore from './useCardStore';
+import useUsageStore from './useUsageStore';
+import useDashboardStore from './useDashboardStore';
+import useBenefitStore from './useBenefitStore';
 
 /**
  * 인증 상태 관리 스토어
@@ -60,6 +64,13 @@ const useAuthStore = create((set) => ({
   // 로그아웃
   logout: () => {
     localStorage.removeItem('cardpick_token');
+    
+    // 타 스토어 상태 초기화
+    useCardStore.getState().reset();
+    useUsageStore.getState().reset();
+    useDashboardStore.getState().reset();
+    useBenefitStore.getState().reset();
+
     set({
       user: null,
       token: null,

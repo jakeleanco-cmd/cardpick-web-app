@@ -61,6 +61,9 @@ const useBenefitStore = create((set, get) => ({
   },
 
   clearError: () => set({ error: null }),
+
+  // 상태 초기화
+  reset: () => set({ benefits: [], loading: false, error: null }),
 }));
 
 export default useBenefitStore;

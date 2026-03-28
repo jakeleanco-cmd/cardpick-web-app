@@ -1,4 +1,4 @@
-import { Form, Input, Button, Typography, message } from 'antd';
+import { Form, Input, Button, Typography, message, Divider } from 'antd';
 import { MailOutlined, LockOutlined, UserOutlined, UserAddOutlined } from '@ant-design/icons';
 import { useNavigate, Link } from 'react-router-dom';
 import useAuthStore from '../store/useAuthStore';
@@ -117,13 +117,26 @@ const RegisterPage = () => {
           </Form.Item>
         </Form>
 
+        <Divider style={{ borderColor: '#3B3555' }}>
+          <Text style={{ color: '#9CA3AF', fontSize: 13 }}>이미 계정이 있으신가요?</Text>
+        </Divider>
+
         <div style={{ textAlign: 'center' }}>
-          <Text style={{ color: '#9CA3AF' }}>
-            이미 계정이 있으신가요?{' '}
-            <Link to="/login" style={{ color: '#7C3AED', fontWeight: 600 }}>
-              로그인
-            </Link>
-          </Text>
+          <Button 
+            type="default" 
+            block 
+            onClick={() => navigate('/login')}
+            style={{ 
+              height: 48, 
+              borderRadius: 12, 
+              background: 'transparent',
+              borderColor: '#9CA3AF',
+              color: '#9CA3AF',
+              fontWeight: 600
+            }}
+          >
+            로그인하기
+          </Button>
         </div>
       </div>
     </div>
