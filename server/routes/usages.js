@@ -77,16 +77,27 @@ router.get('/dashboard', async (req, res) => {
           monthlyLimit: benefit.monthlyLimit,
           used,
           remaining,
-          pickingRate: Math.round(pickingRate * 10) / 10,
+          benefitUsageRate: Math.round(pickingRate * 10) / 10,
         };
       });
 
       // 카드별 합산
       const cardTotalLimit = categories.reduce((sum, c) => sum + c.monthlyLimit, 0);
       const cardTotalUsed = categories.reduce((sum, c) => sum + Math.min(c.used, c.monthlyLimit), 0);
-      const cardPickingRate = cardTotalLimit > 0
+      
+      // 사용율 (%): (혜택 / 한도) * 100
+      const cardBenefitUsageRate = cardTotalLimit > 0
         ? Math.round((cardTotalUsed / cardTotalLimit) * 1000) / 10
         : 0;
+      
+      // 피킹률 (%): ((혜택 - 연회비/12) / 실적기준금액) * 100
+      const monthlyAnnualFee = (card.annualFee || 0) / 12;
+      const cardRealPickingRate = card.minSpending > 0
+        ? Math.round(((cardTotalUsed - monthlyAnnualFee) / card.minSpending) * 1000) / 10
+        : 0;
+
+      totalLimit += cardTotalLimit;
+      totalUsed += cardTotalUsed;
 
       return {
         _id: card._id,
@@ -97,14 +108,21 @@ router.get('/dashboard', async (req, res) => {
         minSpending: card.minSpending,
         cardTotalLimit,
         cardTotalUsed,
-        cardPickingRate,
+        cardBenefitUsageRate,
+        cardRealPickingRate,
         categories,
       };
     });
 
-    // 전체 피킹률
-    const overallPickingRate = totalLimit > 0
+    // 전체 지표 계산
+    const overallBenefitUsageRate = totalLimit > 0
       ? Math.round((totalUsed / totalLimit) * 1000) / 10
+      : 0;
+    
+    // 전체 피킹률: 카드별 피킹률의 산술 평균
+    const totalPickingRateSum = cardSummaries.reduce((sum, c) => sum + c.cardRealPickingRate, 0);
+    const overallRealPickingRate = cardSummaries.length > 0
+      ? Math.round((totalPickingRateSum / cardSummaries.length) * 10) / 10
       : 0;
 
     // 실적 미달 카드 수
@@ -115,7 +133,8 @@ router.get('/dashboard', async (req, res) => {
       month,
       totalLimit,
       totalUsed,
-      overallPickingRate,
+      overallBenefitUsageRate,
+      overallRealPickingRate,
       unmetCards,
       cardSummaries,
     });
