@@ -13,14 +13,18 @@
       "use": "@vercel/node"
     }
   ],
-  "rewrites": [
+  "routes": [
     {
-      "source": "/api/(.*)",
-      "destination": "/server/server.js"
+      "src": "/api/(.*)",
+      "dest": "/server/server.js"
     },
     {
-      "source": "/(.*)",
-      "destination": "/client/dist/$1"
+      "src": "/(.*\\.(js|css|svg|png|jpg|jpeg|gif|ico|woff|woff2|ttf))$",
+      "dest": "/client/dist/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/client/dist/index.html"
     }
   ]
 }
