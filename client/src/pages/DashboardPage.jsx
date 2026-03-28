@@ -52,15 +52,15 @@ const DashboardPage = () => {
     );
   }
 
-  const { 
-    year, 
-    month, 
-    totalLimit, 
-    totalUsed, 
-    overallBenefitUsageRate, 
-    overallRealPickingRate, 
-    unmetCards, 
-    cardSummaries 
+  const {
+    year,
+    month,
+    totalLimit,
+    totalUsed,
+    overallBenefitUsageRate,
+    overallRealPickingRate,
+    unmetCards,
+    cardSummaries
   } = dashboard;
 
   return (
@@ -106,7 +106,7 @@ const DashboardPage = () => {
             ₩{totalUsed.toLocaleString()}
           </Text>
           <Text style={{ fontSize: 13, color: '#9CA3AF' }}>
-            / 한도 ₩{totalLimit.toLocaleString()}
+            / 혜택 한도 ₩{totalLimit.toLocaleString()}
           </Text>
           <div style={{ marginLeft: 'auto', textAlign: 'right' }}>
             <Text style={{ fontSize: 12, color: '#9CA3AF', display: 'block' }}>전체 평균 피킹률</Text>
@@ -116,12 +116,12 @@ const DashboardPage = () => {
       </Card>
 
       {/* 요약: 피킹률 게이지 모음 (가로 스크롤) */}
-      <div 
-        style={{ 
-          display: 'flex', 
-          overflowX: 'auto', 
-          gap: 12, 
-          paddingBottom: 8, 
+      <div
+        style={{
+          display: 'flex',
+          overflowX: 'auto',
+          gap: 12,
+          paddingBottom: 8,
           marginBottom: 20,
           scrollbarWidth: 'none', // Firefox
           msOverflowStyle: 'none', // IE
@@ -129,7 +129,7 @@ const DashboardPage = () => {
         className="picking-rate-container"
       >
         <style>{`.picking-rate-container::-webkit-scrollbar { display: none; }`}</style>
-        
+
         {/* 전체 피킹률 */}
         <Card
           className="summary-card"
@@ -137,7 +137,7 @@ const DashboardPage = () => {
         >
           <PickingRateGauge
             rate={overallBenefitUsageRate}
-            label="전체 사용율"
+            label="전체 혜택사용율"
             size={75}
           />
         </Card>

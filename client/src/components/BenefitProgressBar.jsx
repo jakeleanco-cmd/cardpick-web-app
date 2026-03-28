@@ -31,7 +31,7 @@ const BenefitProgressBar = ({ categoryName, used, monthlyLimit, discountType, on
         </Text>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <Text style={{ fontSize: 12, color: '#9CA3AF' }}>
-            {used.toLocaleString()}원 / {monthlyLimit.toLocaleString()}원
+            혜택 {used.toLocaleString()}원 / 한도 {monthlyLimit.toLocaleString()}원
           </Text>
           {onLogUsage && (
             <Button
