@@ -1,0 +1,274 @@
+/* ===========================================
+   CardPick — 글로벌 CSS (다크모드, 모바일 퍼스트)
+   =========================================== */
+
+/* 웹폰트: Pretendard (한국어 최적화 폰트) */
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+
+/* 기본 리셋 & 다크 배경 */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --bg-primary: #13111C;
+  --bg-secondary: #1E1B2E;
+  --bg-elevated: #252238;
+  --text-primary: #E8E6F0;
+  --text-secondary: #9CA3AF;
+  --accent-purple: #7C3AED;
+  --accent-indigo: #6366F1;
+  --accent-green: #10B981;
+  --accent-yellow: #F59E0B;
+  --accent-red: #EF4444;
+  --border-color: #3B3555;
+  --border-light: #2D2945;
+}
+
+html, body {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+/* 앱 래퍼 — 하단 네비게이션 공간 확보 */
+.app-wrapper {
+  min-height: 100vh;
+  padding-bottom: 72px; /* 하단 네비 높이만큼 */
+}
+
+/* 페이지 컨테이너 — 모바일 최적화 패딩 */
+.page-container {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 16px 16px 24px;
+}
+
+/* ===========================================
+   인증 페이지 스타일
+   =========================================== */
+.auth-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: linear-gradient(180deg, #13111C 0%, #1a1535 50%, #13111C 100%);
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 400px;
+  padding: 32px 24px;
+  background: rgba(30, 27, 46, 0.8);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border-color);
+  border-radius: 24px;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.4);
+}
+
+.auth-logo {
+  font-size: 48px;
+  display: inline-block;
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+.auth-button {
+  height: 48px !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  background: linear-gradient(135deg, var(--accent-purple), var(--accent-indigo)) !important;
+  border: none !important;
+  border-radius: 12px !important;
+  box-shadow: 0 4px 16px rgba(124, 58, 237, 0.3) !important;
+  transition: all 0.3s ease !important;
+}
+
+.auth-button:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 24px rgba(124, 58, 237, 0.4) !important;
+}
+
+.auth-error {
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 12px;
+  color: var(--accent-red);
+  font-size: 13px;
+  text-align: center;
+}
+
+/* ===========================================
+   요약 카드 스타일
+   =========================================== */
+.summary-card {
+  background: linear-gradient(135deg, var(--bg-elevated), var(--bg-secondary)) !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: 16px !important;
+  transition: transform 0.2s ease !important;
+}
+
+.summary-card:hover {
+  transform: translateY(-2px);
+}
+
+/* ===========================================
+   하단 탭 네비게이션 (모바일 퍼스트)
+   =========================================== */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 64px;
+  background: rgba(30, 27, 46, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 0 8px;
+  padding-bottom: env(safe-area-inset-bottom, 0);
+  z-index: 1000;
+}
+
+.bottom-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  height: 100%;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: var(--text-secondary);
+  position: relative;
+}
+
+.bottom-nav-item.active {
+  color: var(--accent-purple);
+}
+
+.bottom-nav-item.active::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 24px;
+  height: 3px;
+  background: var(--accent-purple);
+  border-radius: 0 0 3px 3px;
+}
+
+.bottom-nav-icon {
+  font-size: 20px;
+  margin-bottom: 2px;
+  transition: transform 0.2s ease;
+}
+
+.bottom-nav-item.active .bottom-nav-icon {
+  transform: scale(1.1);
+}
+
+.bottom-nav-label {
+  font-size: 10px;
+  font-weight: 500;
+}
+
+/* ===========================================
+   Ant Design 커스텀 오버라이드
+   =========================================== */
+
+/* Drawer 바텀 시트 스타일 */
+.ant-drawer-bottom .ant-drawer-content {
+  border-radius: 20px 20px 0 0;
+}
+
+/* 스크롤바 커스텀 */
+::-webkit-scrollbar {
+  width: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 4px;
+}
+
+/* Progress bar 애니메이션 */
+.ant-progress-bg {
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* 입력 필드 다크 스타일 */
+.ant-input,
+.ant-input-password,
+.ant-select-selector,
+.ant-input-number,
+.ant-picker {
+  background: var(--bg-elevated) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+
+.ant-input::placeholder,
+.ant-input-password input::placeholder {
+  color: var(--text-secondary) !important;
+}
+
+/* 카드 hover 효과 */
+.ant-card-hoverable:hover {
+  border-color: var(--accent-purple) !important;
+  box-shadow: 0 4px 20px rgba(124, 58, 237, 0.15) !important;
+}
+
+/* 선택 드롭다운 다크 스타일 */
+.ant-select-dropdown {
+  background: var(--bg-elevated) !important;
+  border: 1px solid var(--border-color) !important;
+}
+
+/* DatePicker 다크 스타일 */
+.ant-picker-dropdown {
+  background: var(--bg-elevated);
+}
+
+/* Alert 커스텀 */
+.ant-alert {
+  border-radius: 12px !important;
+}
+
+/* 모바일 반응형 (데스크탑에서도 잘 보이도록) */
+@media (min-width: 768px) {
+  .page-container {
+    max-width: 600px;
+    padding: 24px;
+  }
+
+  .bottom-nav {
+    max-width: 600px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-radius: 16px 16px 0 0;
+    border-left: 1px solid var(--border-color);
+    border-right: 1px solid var(--border-color);
+  }
+}

@@ -1,0 +1,212 @@
+const express = require('express');
+const BenefitUsage = require('../models/BenefitUsage');
+const BenefitCategory = require('../models/BenefitCategory');
+const Card = require('../models/Card');
+const authMiddleware = require('../middleware/auth');
+
+const router = express.Router();
+
+router.use(authMiddleware);
+
+/**
+ * GET /api/usages/dashboard
+ * 대시보드 요약 데이터
+ * - 카드별 혜택 카테고리별 잔여 한도 계산
+ * - 전체 피킹률 계산 (총 혜택 사용액 / 총 한도 × 100)
+ * - 전월 실적 미달 카드 표시
+ * 
+ * ⚠️ 주의: /:id 파라미터 라우트보다 먼저 정의해야 "dashboard"가 id로 잘못 인식되지 않음
+ */
+router.get('/dashboard', async (req, res) => {
+  try {
+    const now = new Date();
+    const year = parseInt(req.query.year) || now.getFullYear();
+    const month = parseInt(req.query.month) || now.getMonth() + 1;
+
+    // 해당 월의 시작과 끝 날짜
+    const startDate = new Date(year, month - 1, 1);
+    const endDate = new Date(year, month, 0, 23, 59, 59, 999);
+
+    // 사용자의 모든 카드 조회
+    const cards = await Card.find({ userId: req.user.id });
+
+    // 사용자의 모든 혜택 카테고리 조회
+    const benefits = await BenefitCategory.find({ userId: req.user.id });
+
+    // 이번 달 사용 기록 조회
+    const usages = await BenefitUsage.find({
+      userId: req.user.id,
+      date: { $gte: startDate, $lte: endDate },
+    });
+
+    // 카테고리별 사용 금액 합산
+    const usageByCategory = {};
+    usages.forEach((usage) => {
+      const catId = usage.benefitCategoryId.toString();
+      if (!usageByCategory[catId]) {
+        usageByCategory[catId] = 0;
+      }
+      usageByCategory[catId] += usage.benefitAmount;
+    });
+
+    // 카드별 데이터 구성
+    let totalLimit = 0;
+    let totalUsed = 0;
+
+    const cardSummaries = cards.map((card) => {
+      const cardBenefits = benefits.filter(
+        (b) => b.cardId.toString() === card._id.toString()
+      );
+
+      const categories = cardBenefits.map((benefit) => {
+        const catId = benefit._id.toString();
+        const used = usageByCategory[catId] || 0;
+        const remaining = Math.max(0, benefit.monthlyLimit - used);
+        const pickingRate = benefit.monthlyLimit > 0
+          ? Math.min(100, (used / benefit.monthlyLimit) * 100)
+          : 0;
+
+        totalLimit += benefit.monthlyLimit;
+        totalUsed += Math.min(used, benefit.monthlyLimit);
+
+        return {
+          _id: benefit._id,
+          categoryName: benefit.categoryName,
+          discountType: benefit.discountType,
+          discountRate: benefit.discountRate,
+          monthlyLimit: benefit.monthlyLimit,
+          used,
+          remaining,
+          pickingRate: Math.round(pickingRate * 10) / 10,
+        };
+      });
+
+      // 카드별 합산
+      const cardTotalLimit = categories.reduce((sum, c) => sum + c.monthlyLimit, 0);
+      const cardTotalUsed = categories.reduce((sum, c) => sum + Math.min(c.used, c.monthlyLimit), 0);
+      const cardPickingRate = cardTotalLimit > 0
+        ? Math.round((cardTotalUsed / cardTotalLimit) * 1000) / 10
+        : 0;
+
+      return {
+        _id: card._id,
+        name: card.name,
+        company: card.company,
+        color: card.color,
+        isMinSpendingMet: card.isMinSpendingMet,
+        minSpending: card.minSpending,
+        cardTotalLimit,
+        cardTotalUsed,
+        cardPickingRate,
+        categories,
+      };
+    });
+
+    // 전체 피킹률
+    const overallPickingRate = totalLimit > 0
+      ? Math.round((totalUsed / totalLimit) * 1000) / 10
+      : 0;
+
+    // 실적 미달 카드 수
+    const unmetCards = cards.filter((c) => !c.isMinSpendingMet).length;
+
+    res.json({
+      year,
+      month,
+      totalLimit,
+      totalUsed,
+      overallPickingRate,
+      unmetCards,
+      cardSummaries,
+    });
+  } catch (error) {
+    res.status(500).json({ message: '대시보드 데이터 조회 실패', error: error.message });
+  }
+});
+
+/**
+ * GET /api/usages
+ * 사용 기록 조회
+ * - month, year 쿼리로 월별 필터링
+ * - cardId 쿼리로 카드별 필터링
+ * - 기본값: 현재 년/월
+ */
+router.get('/', async (req, res) => {
+  try {
+    const now = new Date();
+    const year = parseInt(req.query.year) || now.getFullYear();
+    const month = parseInt(req.query.month) || now.getMonth() + 1;
+
+    // 해당 월의 시작과 끝 날짜 계산
+    const startDate = new Date(year, month - 1, 1);
+    const endDate = new Date(year, month, 0, 23, 59, 59, 999);
+
+    const filter = {
+      userId: req.user.id,
+      date: { $gte: startDate, $lte: endDate },
+    };
+
+    if (req.query.cardId) {
+      filter.cardId = req.query.cardId;
+    }
+
+    const usages = await BenefitUsage.find(filter)
+      .populate('benefitCategoryId', 'categoryName discountType')
+      .populate('cardId', 'name company color')
+      .sort({ date: -1 });
+
+    res.json(usages);
+  } catch (error) {
+    res.status(500).json({ message: '사용 기록 조회 실패', error: error.message });
+  }
+});
+
+/**
+ * POST /api/usages
+ * 사용 기록 등록
+ * - 혜택을 받았을 때 결제 금액과 혜택 금액을 기록
+ */
+router.post('/', async (req, res) => {
+  try {
+    const { benefitCategoryId, cardId, amount, benefitAmount, date, memo } = req.body;
+
+    const usage = await BenefitUsage.create({
+      benefitCategoryId,
+      cardId,
+      userId: req.user.id,
+      amount,
+      benefitAmount,
+      date: date || new Date(),
+      memo: memo || '',
+    });
+
+    const populated = await usage.populate([
+      { path: 'benefitCategoryId', select: 'categoryName discountType' },
+      { path: 'cardId', select: 'name company color' },
+    ]);
+
+    res.status(201).json(populated);
+  } catch (error) {
+    res.status(500).json({ message: '사용 기록 등록 실패', error: error.message });
+  }
+});
+
+/**
+ * DELETE /api/usages/:id
+ * 사용 기록 삭제
+ */
+router.delete('/:id', async (req, res) => {
+  try {
+    const usage = await BenefitUsage.findOne({ _id: req.params.id, userId: req.user.id });
+    if (!usage) {
+      return res.status(404).json({ message: '사용 기록을 찾을 수 없습니다.' });
+    }
+
+    await BenefitUsage.deleteOne({ _id: usage._id });
+    res.json({ message: '사용 기록이 삭제되었습니다.' });
+  } catch (error) {
+    res.status(500).json({ message: '사용 기록 삭제 실패', error: error.message });
+  }
+});
+
+module.exports = router;
