@@ -52,17 +52,7 @@ const DashboardPage = () => {
     );
   }
 
-  const { 
-    year, 
-    month, 
-    totalLimit, 
-    totalUsed, 
-    totalAmount,
-    overallBenefitUsageRate, 
-    overallRealPickingRate, 
-    unmetCards, 
-    cardSummaries 
-  } = dashboard;
+  const { year, month, totalLimit, totalUsed, overallPickingRate, unmetCards, cardSummaries } = dashboard;
 
   return (
     <div className="page-container">
@@ -109,10 +99,6 @@ const DashboardPage = () => {
           <Text style={{ fontSize: 13, color: '#9CA3AF' }}>
             / 한도 ₩{totalLimit.toLocaleString()}
           </Text>
-          <div style={{ marginLeft: 'auto', textAlign: 'right' }}>
-            <Text style={{ fontSize: 12, color: '#9CA3AF', display: 'block' }}>전체 피킹률</Text>
-            <Text style={{ fontSize: 16, fontWeight: 700, color: '#7C3AED' }}>{overallRealPickingRate}%</Text>
-          </div>
         </div>
       </Card>
 
@@ -137,8 +123,8 @@ const DashboardPage = () => {
           styles={{ body: { padding: '16px 12px', minWidth: 110, display: 'flex', justifyContent: 'center' } }}
         >
           <PickingRateGauge
-            rate={overallBenefitUsageRate}
-            label="전체 혜택사용율"
+            rate={overallPickingRate}
+            label="전체 피킹률"
             size={75}
           />
         </Card>
@@ -152,7 +138,7 @@ const DashboardPage = () => {
             styles={{ body: { padding: '16px 12px', minWidth: 110, display: 'flex', justifyContent: 'center' } }}
           >
             <PickingRateGauge
-              rate={card.cardBenefitUsageRate}
+              rate={card.cardPickingRate}
               label={card.name}
               size={75}
             />
@@ -214,29 +200,13 @@ const DashboardPage = () => {
                   </Text>
                 </div>
                 <div style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'flex-end',
-                  gap: 2,
+                  background: `${card.color}22`,
+                  borderRadius: 8,
+                  padding: '4px 10px',
                 }}>
-                  <div style={{
-                    background: `${card.color}22`,
-                    borderRadius: 6,
-                    padding: '2px 8px',
-                  }}>
-                    <Text style={{ fontSize: 11, color: card.color }}>
-                      사용율 {card.cardBenefitUsageRate}%
-                    </Text>
-                  </div>
-                  <div style={{
-                    background: '#7C3AED22',
-                    borderRadius: 6,
-                    padding: '2px 8px',
-                  }}>
-                    <Text style={{ fontSize: 11, fontWeight: 700, color: '#A78BFA' }}>
-                      피킹률 {card.cardRealPickingRate}%
-                    </Text>
-                  </div>
+                  <Text style={{ fontSize: 13, fontWeight: 600, color: card.color }}>
+                    {card.cardPickingRate}%
+                  </Text>
                 </div>
               </div>
 
