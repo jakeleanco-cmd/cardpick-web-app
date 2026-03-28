@@ -83,37 +83,68 @@ const DashboardPage = () => {
         />
       )}
 
-      {/* 요약 카드 */}
-      <Row gutter={[12, 12]} style={{ marginBottom: 20 }}>
-        <Col span={12}>
+      {/* 요약 카드: 총 혜택 */}
+      <Card
+        className="summary-card"
+        style={{ marginBottom: 12 }}
+        styles={{ body: { padding: '16px' } }}
+      >
+        <Text style={{ fontSize: 12, color: '#9CA3AF', display: 'block' }}>
+          <TrophyOutlined /> 총 혜택 수령
+        </Text>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+          <Text style={{ fontSize: 24, fontWeight: 700, color: '#10B981' }}>
+            ₩{totalUsed.toLocaleString()}
+          </Text>
+          <Text style={{ fontSize: 13, color: '#9CA3AF' }}>
+            / 한도 ₩{totalLimit.toLocaleString()}
+          </Text>
+        </div>
+      </Card>
+
+      {/* 요약: 피킹률 게이지 모음 (가로 스크롤) */}
+      <div 
+        style={{ 
+          display: 'flex', 
+          overflowX: 'auto', 
+          gap: 12, 
+          paddingBottom: 8, 
+          marginBottom: 20,
+          scrollbarWidth: 'none', // Firefox
+          msOverflowStyle: 'none', // IE
+        }}
+        className="picking-rate-container"
+      >
+        <style>{`.picking-rate-container::-webkit-scrollbar { display: none; }`}</style>
+        
+        {/* 전체 피킹률 */}
+        <Card
+          className="summary-card"
+          styles={{ body: { padding: '16px 12px', minWidth: 110, display: 'flex', justifyContent: 'center' } }}
+        >
+          <PickingRateGauge
+            rate={overallPickingRate}
+            label="전체 피킹률"
+            size={75}
+          />
+        </Card>
+
+        {/* 카드별 피킹률 */}
+        {cardSummaries.map((card) => (
           <Card
-            className="summary-card"
-            styles={{ body: { padding: '16px' } }}
-          >
-            <Text style={{ fontSize: 12, color: '#9CA3AF', display: 'block' }}>
-              <TrophyOutlined /> 총 혜택 수령
-            </Text>
-            <Text style={{ fontSize: 22, fontWeight: 700, color: '#10B981' }}>
-              ₩{totalUsed.toLocaleString()}
-            </Text>
-            <Text style={{ fontSize: 11, color: '#9CA3AF', display: 'block' }}>
-              한도 ₩{totalLimit.toLocaleString()}
-            </Text>
-          </Card>
-        </Col>
-        <Col span={12}>
-          <Card
-            className="summary-card"
-            styles={{ body: { padding: '16px', display: 'flex', justifyContent: 'center' } }}
+            key={`gauge-${card._id}`}
+            className="summary-card ant-card-hoverable"
+            onClick={() => navigate(`/cards/${card._id}`)}
+            styles={{ body: { padding: '16px 12px', minWidth: 110, display: 'flex', justifyContent: 'center' } }}
           >
             <PickingRateGauge
-              rate={overallPickingRate}
-              label="전체 피킹률"
-              size={90}
+              rate={card.cardPickingRate}
+              label={card.name}
+              size={75}
             />
           </Card>
-        </Col>
-      </Row>
+        ))}
+      </div>
 
       {/* 카드별 혜택 현황 */}
       {cardSummaries.length === 0 ? (
