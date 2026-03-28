@@ -1,25 +1,57 @@
-import { useEffect } from 'react';
-import { Drawer, Form, InputNumber, Input, Button, message, Typography } from 'antd';
-import { ThunderboltOutlined } from '@ant-design/icons';
+import { useState, useEffect } from 'react';
+import { Drawer, Form, InputNumber, Input, Button, message, Typography, Divider, List, Popconfirm, Spin, Empty } from 'antd';
+import { ThunderboltOutlined, DeleteOutlined } from '@ant-design/icons';
+import dayjs from 'dayjs';
 import useUsageStore from '../store/useUsageStore';
+import api from '../api/axios';
 
 const { Text } = Typography;
 
 /**
  * 빠른 혜택 사용 입력 모달 (바텀 시트 형식)
- * - 카드와 카테고리가 이미 선택된 상태로 렌더링
- * - 자동 계산 제외, 사용자가 직접 혜택 금액 변경 가능
+ * - 폼 입력 하단에 카테고리별 이번 달 기존 사용 내역 리스트 표출 기능 추가
  */
 const DirectUsageModal = ({ open, onClose, card, category, onSuccess }) => {
   const [form] = Form.useForm();
-  const { addUsage } = useUsageStore();
+  const { addUsage, deleteUsage } = useUsageStore();
+  
+  // 현재 카드/카테고리의 이번 달 사용 내역 상태
+  const [recentUsages, setRecentUsages] = useState([]);
+  const [loadingUsages, setLoadingUsages] = useState(false);
+
+  // 이번 달 내역 불러오기
+  const loadCategoryUsages = async () => {
+    if (!card || !category) return;
+    try {
+      setLoadingUsages(true);
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = now.getMonth() + 1;
+      
+      const res = await api.get('/usages', {
+        params: { year, month, cardId: card._id },
+      });
+      
+      // 카테고리로 필터링 (조회된 내역은 시간 역순 정렬되어 옴)
+      const filtered = res.data.filter(
+        (u) => (u.benefitCategoryId._id || u.benefitCategoryId) === category._id
+      );
+      setRecentUsages(filtered);
+    } catch (e) {
+      console.error('사용 내역 로드 실패', e);
+    } finally {
+      setLoadingUsages(false);
+    }
+  };
 
   useEffect(() => {
     if (open) {
       form.resetFields();
+      loadCategoryUsages();
     }
-  }, [open, form]);
+  }, [open, form, card, category]);
 
+  // 사용 기록 추가
   const handleSubmit = async (values) => {
     if (!card || !category) return;
 
@@ -35,7 +67,21 @@ const DirectUsageModal = ({ open, onClose, card, category, onSuccess }) => {
       message.success('혜택 사용이 기록되었습니다!');
       form.resetFields();
       onSuccess && onSuccess();
-      onClose();
+      // 방금 등록한 내역이 보이도록 리스트 최신화 
+      loadCategoryUsages();
+      // UX: 창을 닫지 않고 아래에 기록이 남는 걸 자연스레 볼지, 닫을지는 선택이지만 창 유지가 직관성에 어울립니다.
+      // 닫길 원하신다면 여기서 onClose() 
+    }
+  };
+
+  // 기존 내역 삭제 
+  const handleDelete = async (usageId) => {
+    const success = await deleteUsage(usageId);
+    if (success) {
+      message.success('내역이 삭제되었습니다.');
+      onSuccess && onSuccess(); // 대시보드 쪽(한도 프로그레스바) 재계산을 위해
+      // 로컬 리스트에서도 제거
+      loadCategoryUsages();
     }
   };
 
@@ -52,7 +98,7 @@ const DirectUsageModal = ({ open, onClose, card, category, onSuccess }) => {
         </div>
       }
       placement="bottom"
-      height="auto"
+      height="85vh" // 높이를 조금 넉넉하게 
       open={open}
       onClose={onClose}
       styles={{
@@ -61,10 +107,7 @@ const DirectUsageModal = ({ open, onClose, card, category, onSuccess }) => {
       }}
     >
       <Form form={form} onFinish={handleSubmit} layout="vertical" size="large">
-        <Form.Item
-          label="결제 금액 (선택)"
-          name="amount"
-        >
+        <Form.Item label="결제 금액 (선택)" name="amount">
           <InputNumber
             placeholder="결제 금액 입력"
             style={{ width: '100%' }}
@@ -88,11 +131,11 @@ const DirectUsageModal = ({ open, onClose, card, category, onSuccess }) => {
           />
         </Form.Item>
 
-        <Form.Item label="메모 (선택)" name="memo">
-          <Input placeholder="예: 스타벅스 아메리카노" />
+        <Form.Item label="메모 (선택)" name="memo" style={{ marginBottom: 16 }}>
+          <Input placeholder="어디서 사용하셨나요?" />
         </Form.Item>
 
-        <Form.Item style={{ margin: 0, marginTop: 16 }}>
+        <Form.Item style={{ margin: 0, marginBottom: 8 }}>
           <Button
             type="primary"
             htmlType="submit"
@@ -110,6 +153,70 @@ const DirectUsageModal = ({ open, onClose, card, category, onSuccess }) => {
           </Button>
         </Form.Item>
       </Form>
+
+      <Divider style={{ borderColor: '#3B3555', margin: '24px 0' }}>
+        <Text style={{ fontSize: 12, color: '#9CA3AF' }}>이번 달 {category.categoryName} 내역</Text>
+      </Divider>
+
+      {/* 이번 달 해당 카테고리 내역 리스트 */}
+      {loadingUsages ? (
+        <div style={{ textAlign: 'center', padding: 20 }}><Spin /></div>
+      ) : recentUsages.length === 0 ? (
+        <Empty 
+          description="이번 달 내역이 없습니다." 
+          imageStyle={{ height: 60 }} 
+          style={{ marginTop: 20 }}
+        />
+      ) : (
+        <List
+          dataSource={recentUsages}
+          renderItem={(usage) => (
+            <div
+              key={usage._id}
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                padding: '12px 16px',
+                marginBottom: 8,
+                background: '#252238',
+                borderRadius: 12,
+                border: '1px solid #3B3555',
+              }}
+            >
+              <div style={{ flex: 1, paddingRight: 8 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                  <Text strong style={{ fontSize: 13, color: '#E8E6F0' }}>
+                    혜택 {usage.benefitAmount?.toLocaleString()}원
+                  </Text>
+                  <Text style={{ fontSize: 11, color: '#9CA3AF' }}>
+                    {dayjs(usage.date).format('MM/DD HH:mm')}
+                  </Text>
+                </div>
+                <Text style={{ fontSize: 12, color: '#9CA3AF' }}>
+                  {usage.amount > 0 ? `결제 ${usage.amount.toLocaleString()}원 ` : ''} 
+                  {usage.memo && `· ${usage.memo}`}
+                </Text>
+              </div>
+              
+              <Popconfirm
+                title="삭제하시겠습니까?"
+                onConfirm={() => handleDelete(usage._id)}
+                okText="삭제"
+                cancelText="취소"
+                placement="topRight"
+              >
+                <Button
+                  type="text"
+                  size="small"
+                  danger
+                  icon={<DeleteOutlined />}
+                />
+              </Popconfirm>
+            </div>
+          )}
+        />
+      )}
     </Drawer>
   );
 };
