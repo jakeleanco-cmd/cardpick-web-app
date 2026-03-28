@@ -39,19 +39,31 @@ router.get('/dashboard', async (req, res) => {
       date: { $gte: startDate, $lte: endDate },
     });
 
-    // 카테고리별 사용 금액 합산
+    // 카테고리 및 카드별 합산 데이터
     const usageByCategory = {};
+    const cardTotalAmountMap = {}; // 카드별 총 결제 금액
+
     usages.forEach((usage) => {
+      // 카테고리별 혜택 사용액 합산
       const catId = usage.benefitCategoryId.toString();
       if (!usageByCategory[catId]) {
         usageByCategory[catId] = 0;
       }
       usageByCategory[catId] += usage.benefitAmount;
+
+      // 카드별 총 결제 금액 합산 (피킹률 계산용)
+      const cardId = usage.cardId.toString();
+      if (!cardTotalAmountMap[cardId]) {
+        cardTotalAmountMap[cardId] = 0;
+      }
+      cardTotalAmountMap[cardId] += usage.amount || 0;
     });
 
     // 카드별 데이터 구성
     let totalLimit = 0;
     let totalUsed = 0;
+    let totalAmount = 0; // 전사 총 결제 금액
+    let totalAnnualFee = 0; // 전사 총 연회비
 
     const cardSummaries = cards.map((card) => {
       const cardBenefits = benefits.filter(
@@ -77,16 +89,30 @@ router.get('/dashboard', async (req, res) => {
           monthlyLimit: benefit.monthlyLimit,
           used,
           remaining,
-          pickingRate: Math.round(pickingRate * 10) / 10,
+          benefitUsageRate: Math.round(pickingRate * 10) / 10, // 명칭 변경
         };
       });
 
       // 카드별 합산
       const cardTotalLimit = categories.reduce((sum, c) => sum + c.monthlyLimit, 0);
       const cardTotalUsed = categories.reduce((sum, c) => sum + Math.min(c.used, c.monthlyLimit), 0);
-      const cardPickingRate = cardTotalLimit > 0
+      const cardTotalAmount = cardTotalAmountMap[card._id.toString()] || 0;
+      
+      // 기존 혜택사용율 (한도 대비 사용액)
+      const cardBenefitUsageRate = cardTotalLimit > 0
         ? Math.round((cardTotalUsed / cardTotalLimit) * 1000) / 10
         : 0;
+      
+      // 신규: 진짜 피킹률 (%) = (혜택 - (연회비/12)) / 결제금액 * 100
+      const monthlyAnnualFee = (card.annualFee || 0) / 12;
+      const cardRealPickingRate = cardTotalAmount > 0
+        ? Math.round(((cardTotalUsed - monthlyAnnualFee) / cardTotalAmount) * 1000) / 10
+        : 0;
+
+      totalLimit += cardTotalLimit;
+      totalUsed += cardTotalUsed;
+      totalAmount += cardTotalAmount;
+      totalAnnualFee += (card.annualFee || 0);
 
       return {
         _id: card._id,
@@ -95,16 +121,24 @@ router.get('/dashboard', async (req, res) => {
         color: card.color,
         isMinSpendingMet: card.isMinSpendingMet,
         minSpending: card.minSpending,
+        annualFee: card.annualFee,
         cardTotalLimit,
         cardTotalUsed,
-        cardPickingRate,
+        cardTotalAmount,
+        cardBenefitUsageRate,
+        cardRealPickingRate,
         categories,
       };
     });
 
-    // 전체 피킹률
-    const overallPickingRate = totalLimit > 0
+    // 전체 지표 계산
+    const overallBenefitUsageRate = totalLimit > 0
       ? Math.round((totalUsed / totalLimit) * 1000) / 10
+      : 0;
+    
+    const totalMonthlyAnnualFee = totalAnnualFee / 12;
+    const overallRealPickingRate = totalAmount > 0
+      ? Math.round(((totalUsed - totalMonthlyAnnualFee) / totalAmount) * 1000) / 10
       : 0;
 
     // 실적 미달 카드 수
@@ -115,7 +149,9 @@ router.get('/dashboard', async (req, res) => {
       month,
       totalLimit,
       totalUsed,
-      overallPickingRate,
+      totalAmount,
+      overallBenefitUsageRate,
+      overallRealPickingRate,
       unmetCards,
       cardSummaries,
     });
