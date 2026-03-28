@@ -1,10 +1,11 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Typography, Card, Row, Col, Spin, Empty, Alert, Space, Button } from 'antd';
 import { WarningOutlined, FireOutlined, TrophyOutlined, RightOutlined } from '@ant-design/icons';
 import useDashboardStore from '../store/useDashboardStore';
 import BenefitProgressBar from '../components/BenefitProgressBar';
 import PickingRateGauge from '../components/PickingRateGauge';
+import DirectUsageModal from '../components/DirectUsageModal';
 
 const { Title, Text } = Typography;
 
@@ -18,6 +19,17 @@ const { Title, Text } = Typography;
 const DashboardPage = () => {
   const { dashboard, loading, fetchDashboard } = useDashboardStore();
   const navigate = useNavigate();
+
+  // 바텀 시트 (DirectUsageModal) 상태
+  const [usageModalOpen, setUsageModalOpen] = useState(false);
+  const [selectedCard, setSelectedCard] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState(null);
+
+  const handleOpenUsageModal = (card, category) => {
+    setSelectedCard(card);
+    setSelectedCategory(category);
+    setUsageModalOpen(true);
+  };
 
   useEffect(() => {
     fetchDashboard();
@@ -194,6 +206,7 @@ const DashboardPage = () => {
                     used={cat.used}
                     monthlyLimit={cat.monthlyLimit}
                     discountType={cat.discountType}
+                    onLogUsage={() => handleOpenUsageModal(card, cat)}
                   />
                 ))
               )}
@@ -201,6 +214,15 @@ const DashboardPage = () => {
           ))}
         </div>
       )}
+
+      {/* 서랍형 빠른 사용 입력 */}
+      <DirectUsageModal
+        open={usageModalOpen}
+        onClose={() => setUsageModalOpen(false)}
+        card={selectedCard}
+        category={selectedCategory}
+        onSuccess={fetchDashboard}
+      />
     </div>
   );
 };

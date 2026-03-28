@@ -12,6 +12,7 @@ import useCardStore from '../store/useCardStore';
 import useBenefitStore from '../store/useBenefitStore';
 import useDashboardStore from '../store/useDashboardStore';
 import BenefitProgressBar from '../components/BenefitProgressBar';
+import DirectUsageModal from '../components/DirectUsageModal';
 
 const { Title, Text } = Typography;
 
@@ -31,6 +32,14 @@ const CardDetailPage = () => {
   const { cards, fetchCards } = useCardStore();
   const { benefits, fetchBenefits, addBenefit, updateBenefit, deleteBenefit } = useBenefitStore();
   const { dashboard, fetchDashboard } = useDashboardStore();
+
+  const [usageModalOpen, setUsageModalOpen] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState(null);
+
+  const handleOpenUsageModal = (category) => {
+    setSelectedCategory(category);
+    setUsageModalOpen(true);
+  };
 
   useEffect(() => {
     fetchCards();
@@ -225,6 +234,7 @@ const CardDetailPage = () => {
                   used={used}
                   monthlyLimit={benefit.monthlyLimit}
                   discountType={benefit.discountType}
+                  onLogUsage={() => handleOpenUsageModal(benefit)}
                 />
 
                 {benefit.description && (
@@ -302,6 +312,15 @@ const CardDetailPage = () => {
           </Form.Item>
         </Form>
       </Drawer>
+
+      {/* 서랍형 빠른 사용 입력 */}
+      <DirectUsageModal
+        open={usageModalOpen}
+        onClose={() => setUsageModalOpen(false)}
+        card={card}
+        category={selectedCategory}
+        onSuccess={fetchDashboard}
+      />
     </div>
   );
 };
