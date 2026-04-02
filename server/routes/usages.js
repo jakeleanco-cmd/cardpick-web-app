@@ -156,9 +156,12 @@ router.get('/', async (req, res) => {
     const year = parseInt(req.query.year) || now.getFullYear();
     const month = parseInt(req.query.month) || now.getMonth() + 1;
 
-    // 해당 월의 시작과 끝 날짜 계산
+    // 해당 월의 시작과 끝 날짜 (대시보드와 동일하게 보강)
     const startDate = new Date(year, month - 1, 1);
-    const endDate = new Date(year, month, 0, 23, 59, 59, 999);
+    startDate.setHours(0, 0, 0, 0);
+    
+    const endDate = new Date(year, month, 0);
+    endDate.setHours(23, 59, 59, 999);
 
     const filter = {
       userId: req.user.id,

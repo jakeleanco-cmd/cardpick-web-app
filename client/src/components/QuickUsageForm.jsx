@@ -57,6 +57,7 @@ const QuickUsageForm = ({ onSuccess }) => {
       amount: values.amount,
       benefitAmount: values.benefitAmount,
       memo: values.memo || '',
+      date: new Date().toISOString(), // 명시적으로 현재 시각 전송
     });
 
     if (success) {
