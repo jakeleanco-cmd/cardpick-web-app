@@ -1,12 +1,18 @@
 import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { ConfigProvider, Layout, App as AntApp } from 'antd';
+import koKR from 'antd/locale/ko_KR';
+import dayjs from 'dayjs';
+import 'dayjs/locale/ko';
 import {
   HomeOutlined, CreditCardOutlined,
   UnorderedListOutlined,
   UserOutlined,
 } from '@ant-design/icons';
 import themeConfig from './theme/themeConfig';
+
+// dayjs 한국어 설정
+dayjs.locale('ko');
 import useAuthStore from './store/useAuthStore';
 import ProtectedRoute from './components/ProtectedRoute';
 import LoginPage from './pages/LoginPage';
@@ -111,7 +117,7 @@ const AppLayout = () => {
 
 const App = () => {
   return (
-    <ConfigProvider theme={themeConfig}>
+    <ConfigProvider theme={themeConfig} locale={koKR}>
       <AntApp>
         <BrowserRouter>
           <AppLayout />
