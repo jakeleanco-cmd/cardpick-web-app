@@ -52,7 +52,7 @@ const QuickUsageForm = ({ onSuccess }) => {
 
   const handleSubmit = async (values) => {
     const success = await addUsage({
-      cardId: selectedCardId,
+      cardId: values.cardId,
       benefitCategoryId: values.benefitCategoryId,
       amount: values.amount,
       benefitAmount: values.benefitAmount,

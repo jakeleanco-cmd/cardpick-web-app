@@ -23,9 +23,12 @@ router.get('/dashboard', async (req, res) => {
     const year = parseInt(req.query.year) || now.getFullYear();
     const month = parseInt(req.query.month) || now.getMonth() + 1;
 
-    // 해당 월의 시작과 끝 날짜
+    // 해당 월의 시작과 끝 날짜 (시간대 차이 방지를 위해 UTC 고려 및 범위 확장)
     const startDate = new Date(year, month - 1, 1);
-    const endDate = new Date(year, month, 0, 23, 59, 59, 999);
+    startDate.setHours(0, 0, 0, 0);
+    
+    const endDate = new Date(year, month, 0);
+    endDate.setHours(23, 59, 59, 999);
 
     // 사용자의 모든 카드 조회
     const cards = await Card.find({ userId: req.user.id });
@@ -186,12 +189,20 @@ router.post('/', async (req, res) => {
   try {
     const { benefitCategoryId, cardId, amount, benefitAmount, date, memo } = req.body;
 
+    // 데이터 유효성 검사 및 타입 변환
+    const cleanAmount = Number(amount) || 0;
+    const cleanBenefitAmount = Number(benefitAmount) || 0;
+
+    if (!benefitCategoryId || !cardId) {
+      return res.status(400).json({ message: '카테고리와 카드 정보는 필수입니다.' });
+    }
+
     const usage = await BenefitUsage.create({
       benefitCategoryId,
       cardId,
       userId: req.user.id,
-      amount,
-      benefitAmount,
+      amount: cleanAmount,
+      benefitAmount: cleanBenefitAmount,
       date: date || new Date(),
       memo: memo || '',
     });
