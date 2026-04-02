@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Form, Select, InputNumber, Input, Button, message } from 'antd';
 import { ThunderboltOutlined } from '@ant-design/icons';
+import dayjs from 'dayjs';
 import useCardStore from '../store/useCardStore';
 import useBenefitStore from '../store/useBenefitStore';
 import useUsageStore from '../store/useUsageStore';
@@ -57,7 +58,7 @@ const QuickUsageForm = ({ onSuccess }) => {
       amount: values.amount,
       benefitAmount: values.benefitAmount,
       memo: values.memo || '',
-      date: new Date().toISOString(), // 명시적으로 현재 시각 전송
+      date: dayjs().startOf('day').toISOString(),
     });
 
     if (success) {

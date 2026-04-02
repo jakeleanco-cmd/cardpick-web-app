@@ -66,7 +66,7 @@ const DirectUsageModal = ({ open, onClose, card, category, onSuccess }) => {
       amount: values.amount || 0,
       benefitAmount: values.benefitAmount,
       memo: values.memo || '',
-      date: values.date ? values.date.toDate() : undefined,
+      date: values.date ? values.date.startOf('day').toISOString() : undefined,
     });
 
     if (success) {
@@ -122,13 +122,12 @@ const DirectUsageModal = ({ open, onClose, card, category, onSuccess }) => {
         <Form.Item
           label="사용 일자 (선택)"
           name="date"
-          tooltip="비워두시면 현재 시각으로 자동 등록됩니다."
+          tooltip="비워두시면 오늘 날짜로 자동 등록됩니다."
         >
           <DatePicker 
-            showTime 
-            format="YYYY-MM-DD HH:mm"
+            format="YYYY-MM-DD"
             style={{ width: '100%' }}
-            placeholder="사용 일자 및 시간을 선택하세요"
+            placeholder="사용 일자를 선택하세요"
           />
         </Form.Item>
 
