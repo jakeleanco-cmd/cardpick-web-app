@@ -23,12 +23,9 @@ router.get('/dashboard', async (req, res) => {
     const year = parseInt(req.query.year) || now.getFullYear();
     const month = parseInt(req.query.month) || now.getMonth() + 1;
 
-    // 해당 월의 시작과 끝 날짜 (시간대 차이 방지를 위해 UTC 고려 및 범위 확장)
-    const startDate = new Date(year, month - 1, 1);
-    startDate.setHours(0, 0, 0, 0);
-    
-    const endDate = new Date(year, month, 0);
-    endDate.setHours(23, 59, 59, 999);
+    // 해당 월의 시작과 끝 날짜 (한국 시간 KST 기준 보정)
+    const startDate = new Date(Date.UTC(year, month - 1, 1, -9, 0, 0, 0));
+    const endDate = new Date(Date.UTC(year, month, 1, -9, 0, 0, -1));
 
     // 사용자의 모든 카드 조회
     const cards = await Card.find({ userId: req.user.id });
@@ -156,12 +153,12 @@ router.get('/', async (req, res) => {
     const year = parseInt(req.query.year) || now.getFullYear();
     const month = parseInt(req.query.month) || now.getMonth() + 1;
 
-    // 해당 월의 시작과 끝 날짜 (대시보드와 동일하게 보강)
-    const startDate = new Date(year, month - 1, 1);
-    startDate.setHours(0, 0, 0, 0);
+    // 해당 월의 시작과 끝 날짜 (한국 시간 KST 기준 보정)
+    // 1일 00:00:00 KST -> UTC로는 전날 15:00:00
+    const startDate = new Date(Date.UTC(year, month - 1, 1, -9, 0, 0, 0));
     
-    const endDate = new Date(year, month, 0);
-    endDate.setHours(23, 59, 59, 999);
+    // 다음달 1일 00:00:00 KST 직전 -> UTC로 계산
+    const endDate = new Date(Date.UTC(year, month, 1, -9, 0, 0, -1));
 
     const filter = {
       userId: req.user.id,
