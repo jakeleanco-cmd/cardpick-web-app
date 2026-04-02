@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Typography, Card, Row, Col, Spin, Empty, Alert, Space, Button } from 'antd';
-import { WarningOutlined, FireOutlined, TrophyOutlined, RightOutlined } from '@ant-design/icons';
+import { Typography, Card, Row, Col, Spin, Empty, Alert, Space, Button, DatePicker } from 'antd';
+import { WarningOutlined, FireOutlined, TrophyOutlined, RightOutlined, CalendarOutlined } from '@ant-design/icons';
+import dayjs from 'dayjs';
 import useDashboardStore from '../store/useDashboardStore';
 import BenefitProgressBar from '../components/BenefitProgressBar';
 import PickingRateGauge from '../components/PickingRateGauge';
@@ -11,7 +12,7 @@ const { Title, Text } = Typography;
 
 /**
  * 대시보드 페이지 (메인)
- * - 이번 달 혜택 현황 요약
+ * - 월별 혜택 현황 요약 조회 (Month Picker 추가)
  * - 카드별 혜택 잔여 한도 프로그레스 바
  * - 전체 피킹률 게이지
  * - 실적 미달 카드 경고
@@ -19,6 +20,7 @@ const { Title, Text } = Typography;
 const DashboardPage = () => {
   const { dashboard, loading, fetchDashboard } = useDashboardStore();
   const navigate = useNavigate();
+  const [selectedMonth, setSelectedMonth] = useState(dayjs());
 
   // 바텀 시트 (DirectUsageModal) 상태
   const [usageModalOpen, setUsageModalOpen] = useState(false);
@@ -31,8 +33,15 @@ const DashboardPage = () => {
     setUsageModalOpen(true);
   };
 
+  const handleMonthChange = (date) => {
+    if (date) {
+      setSelectedMonth(date);
+      fetchDashboard(date.year(), date.month() + 1);
+    }
+  };
+
   useEffect(() => {
-    fetchDashboard();
+    fetchDashboard(selectedMonth.year(), selectedMonth.month() + 1);
   }, []);
 
   if (loading) {
@@ -65,14 +74,35 @@ const DashboardPage = () => {
 
   return (
     <div className="page-container">
-      {/* 헤더 */}
-      <div style={{ marginBottom: 20 }}>
-        <Title level={4} style={{ color: '#E8E6F0', margin: 0 }}>
-          📊 {month}월 혜택 현황
-        </Title>
-        <Text style={{ color: '#9CA3AF', fontSize: 13 }}>
-          {year}년 {month}월 신용카드 혜택 사용 현황
-        </Text>
+      {/* 헤더 및 월 선택기 */}
+      <div style={{ 
+        marginBottom: 20, 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'flex-start' 
+      }}>
+        <div>
+          <Title level={4} style={{ color: '#E8E6F0', margin: 0 }}>
+            📊 {month}월 혜택 현황
+          </Title>
+          <Text style={{ color: '#9CA3AF', fontSize: 13 }}>
+            {year}년 {month}월 신용카드 혜택 요약
+          </Text>
+        </div>
+        <DatePicker 
+          picker="month" 
+          value={selectedMonth}
+          onChange={handleMonthChange}
+          allowClear={false}
+          suffixIcon={<CalendarOutlined style={{ color: '#7C3AED' }} />}
+          className="custom-month-picker"
+          style={{
+            background: '#1E1B2E',
+            border: '1px solid #3B3555',
+            color: '#E8E6F0',
+            borderRadius: 8,
+          }}
+        />
       </div>
 
       {/* 실적 미달 카드 경고 */}
