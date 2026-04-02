@@ -4,6 +4,7 @@ import { Typography, Card, Row, Col, Spin, Empty, Alert, Space, Button, DatePick
 import { WarningOutlined, FireOutlined, TrophyOutlined, RightOutlined, CalendarOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import 'dayjs/locale/ko';
+import koKR from 'antd/es/date-picker/locale/ko_KR';
 import useDashboardStore from '../store/useDashboardStore';
 
 // 로케일 설정
@@ -99,6 +100,7 @@ const DashboardPage = () => {
           onChange={handleMonthChange}
           format="YYYY년 MM월"
           allowClear={false}
+          locale={koKR}
           suffixIcon={<CalendarOutlined style={{ color: '#7C3AED' }} />}
           className="custom-month-picker"
           style={{
