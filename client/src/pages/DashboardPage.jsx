@@ -3,7 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { Typography, Card, Row, Col, Spin, Empty, Alert, Space, Button, DatePicker } from 'antd';
 import { WarningOutlined, FireOutlined, TrophyOutlined, RightOutlined, CalendarOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
+import 'dayjs/locale/ko';
 import useDashboardStore from '../store/useDashboardStore';
+
+// 로케일 설정
+dayjs.locale('ko');
 import BenefitProgressBar from '../components/BenefitProgressBar';
 import PickingRateGauge from '../components/PickingRateGauge';
 import DirectUsageModal from '../components/DirectUsageModal';
@@ -93,6 +97,7 @@ const DashboardPage = () => {
           picker="month" 
           value={selectedMonth}
           onChange={handleMonthChange}
+          format="YYYY년 MM월"
           allowClear={false}
           suffixIcon={<CalendarOutlined style={{ color: '#7C3AED' }} />}
           className="custom-month-picker"
